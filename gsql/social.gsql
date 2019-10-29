@@ -1,0 +1,40 @@
+  DROP ALL
+
+  CREATE VERTEX person (PRIMARY_ID id STRING, name STRING, age INT, gender STRING, state STRING)
+  CREATE VERTEX school (PRIMARY_ID id STRING, name STRING)
+  CREATE VERTEX company (PRIMARY_ID id STRING, name STRING, code STRING)
+  CREATE VERTEX house (PRIMARY_ID id STRING, address STRING)
+  CREATE VERTEX person_name (PRIMARY_ID name STRING)
+  VERTEX company(PRIMARY_ID object_key STRING, STRING id, STRING name, STRING reg_address, int reg_capital, DATE reg_date, DATE ctime, DATE utime)
+
+  CREATE UNDIRECTED EDGE friendship (FROM person, TO person, connect_day DATETIME)
+  CREATE UNDIRECTED EDGE study (FROM person, TO school, start_time DATETIME, end_time DATETIME)
+  CREATE UNDIRECTED EDGE work (FROM person, TO company, start_time DATETIME, end_time DATETIME)
+  CREATE UNDIRECTED EDGE live (FROM person, TO house, start_time DATETIME, end_time DATETIME)
+  CREATE UNDIRECTED EDGE shareholder (FROM company, TO company, rate FLOAT)
+  CREATE UNDIRECTED EDGE search_name( FROM person_name, TO person)
+  CREATE UNDIRECTED EDGE company_invest( FROM company, TO company, INT invest_amount,STRING shareholder_type DATETIME ctime, DATETIME utime )
+
+  CREATE GRAPH social (person, school, company, house, person_name, friendship, study, work, live, shareholder, search_name)
+
+  USE GRAPH social
+
+  CREATE LOADING JOB load_social FOR GRAPH social {
+      DEFINE FILENAME f1 = "./person.csv";
+      DEFINE FILENAME f2 = "./friend.csv";
+      DEFINE FILENAME f3 = "./name.csv";
+      DEFINE FILENAME f4 = "./search_name.csv";
+      DEFINE FILENAME f5 = "./company.csv";
+      DEFINE FILENAME f6 = "./company_invest.csv";
+      LOAD f1 TO VERTEX person VALUES($0, $1, $2, $3, $4, $5, $6, $7) USING SEPARATOR=",", HEADER="false", EOL="\n";
+      LOAD f2 TO EDGE friendship VALUES($0, $1, "\0") USING SEPARATOR=",", HEADER="false", EOL="\n";
+      LOAD f3 TO VERTEX person_name VALUES($0) USING SEPARATOR=",", HEADER="false", EOL="\n";
+      LOAD f4 TO EDGE search_name VALUES($0, $1) USING SEPARATOR=",", HEADER="false", EOL="\n";
+      LOAD f5 TO VERTEX company VALUES($0, $1, $2, $3, $4, $5, $6,$7) USING SEPARATOR=",", HEADER="false", EOL="\n";
+      LOAD f6 TO EDGE company_invest VALUES($1, $2, $3, $4, $5, $6) USING SEPARATOR=",", HEADER="false", EOL="\n";
+    }
+
+
+RUN LOADING JOB load_social
+
+

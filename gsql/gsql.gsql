@@ -1,0 +1,29 @@
+---- Graph social
+Vertex Types: 
+  - VERTEX person(PRIMARY_ID id STRING, name STRING, age INT, gender STRING, state STRING) WITH STATS="OUTDEGREE_BY_EDGETYPE"
+  - VERTEX school(PRIMARY_ID id STRING, name STRING) WITH STATS="OUTDEGREE_BY_EDGETYPE"
+  - VERTEX company(PRIMARY_ID id STRING, name STRING, code STRING) WITH STATS="OUTDEGREE_BY_EDGETYPE"
+  - VERTEX house(PRIMARY_ID id STRING, address STRING) WITH STATS="OUTDEGREE_BY_EDGETYPE"
+  - VERTEX person_name(PRIMARY_ID name STRING) WITH STATS="OUTDEGREE_BY_EDGETYPE"
+Edge Types: 
+  - UNDIRECTED EDGE friendship(FROM person, TO person, connect_day DATETIME)
+  - UNDIRECTED EDGE study(FROM person, TO school, start_time DATETIME, end_time DATETIME)
+  - UNDIRECTED EDGE work(FROM person, TO company, start_time DATETIME, end_time DATETIME)
+  - UNDIRECTED EDGE live(FROM person, TO house, start_time DATETIME, end_time DATETIME)
+  - UNDIRECTED EDGE shareholder(FROM company, TO company, rate FLOAT)
+  - UNDIRECTED EDGE search_name(FROM person_name, TO person)
+
+Graphs: 
+  - Graph social(person:v, school:v, company:v, house:v, person_name:v, friendship:e, study:e, work:e, live:e, shareholder:e, search_name:e)
+Jobs: 
+  - CREATE LOADING JOB load_social FOR GRAPH social {
+      DEFINE FILENAME f1 = "/person.csv";
+      DEFINE FILENAME f2 = "/friend.csv";
+      DEFINE FILENAME f3 = "/name.csv";
+      DEFINE FILENAME f4 = "/search_name.csv";
+      LOAD f1 TO VERTEX person VALUES($0, $1, $2, $3, $4) USING SEPARATOR=",", HEADER="false", EOL="\n";
+      LOAD f3 TO VERTEX person_name VALUES($0) USING SEPARATOR=",", HEADER="false", EOL="\n";
+      LOAD f2 TO EDGE friendship VALUES($0, $1, "\0") USING SEPARATOR=",", HEADER="false", EOL="\n";
+      LOAD f4 TO EDGE search_name VALUES($0, $1) USING SEPARATOR=",", HEADER="false", EOL="\n";
+    }
+

@@ -1,0 +1,21 @@
+CREATE QUERY test_k(vertex<person> id, int k) FOR GRAPH social { 
+  /* Write query logic here */ 
+	SumAccum<int> @@loop = 0; 
+	OrAccum @pass = false;
+	SetAccum<edge<friendship>> @@edges;
+	ListAccum<vertex<person>> @@vertexes;
+	OrAccum @start;
+	SumAccum<int> @deep;
+	start = {id};
+	start = select s from start:s
+	      post-accum @@vertexes += s,s.@pass=true,s.@start=true,s.@deep=1;
+	while @@loop < k do
+	  start = select t FROM start:s-(friendship:e)-person:t
+	        where t.@pass==false
+	        accum @@edges += e
+	        post-accum t.@pass=true, @@vertexes += t, t.@deep=@@loop+2;
+	  @@loop += 1;
+	end;
+	c(person) = {@@vertexes};
+  PRINT @@edges as edges, c as vertexes; 
+}
